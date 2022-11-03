@@ -206,7 +206,7 @@ class VirtualPendantApp(App):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="amiga-camera-app")
+    parser = argparse.ArgumentParser(prog="virtual-joystick")
     parser.add_argument("--address", type=str, default="localhost", help="The camera address")
     parser.add_argument("--port", type=int, required=True, help="The grpc port where the canbus service is running.")
     args = parser.parse_args()
