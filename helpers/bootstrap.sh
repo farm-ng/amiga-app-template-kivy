@@ -41,6 +41,7 @@ bootstrap() {
         cd ${application}
         $PYTHON -m pip install --ignore-installed --upgrade -r ${application}/requirements.txt
         touch ${venv}/.lock
+        md5sum ${application}/requirements.txt > ${application}/requirements.txt.md5sum
 
     else
         echo "${venv} already existed, launching application"
