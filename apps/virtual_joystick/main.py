@@ -4,6 +4,7 @@ import asyncio
 import io
 import logging
 import os
+from math import sqrt
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -43,37 +44,65 @@ from kivy.core.image import Image as CoreImage  # noqa: E402
 
 kv = """
 <VirtualJoystickWidget@Widget>:
-BoxLayout:
+RelativeLayout:
+    Button:
+        id: back_btn_layout
+        pos_hint: {"x": 0.0, "top": 1.0}
+        background_color: 0, 0, 0, 0
+        size_hint: 0.1, 0.1
+        background_normal: "assets/back_button.png"
+        on_release: app.on_exit_btn()
+        Image:
+            source: "assets/back_button_normal.png" if self.parent.state == "normal" else "assets/back_button_down.png"
+            pos: self.parent.pos
+            size: self.parent.size
     BoxLayout:
-        size_hint_x: 0.3
-        orientation: 'vertical'
-        Label:
-            text: "state:\\n" + str(app.amiga_state)
-        Label:
-            text: "speed:\\n" + str(app.amiga_speed) + " [m/s]"
-        Label:
-            text: "angular rate:\\n" + str(app.amiga_rate) + " [rad/s]"
-    VirtualJoystickWidget:
-        id: joystick
-    TabbedPanel:
-        do_default_tab: False
-        TabbedPanelItem:
-            text: "Rgb"
-            Image:
-                id: rgb
-        TabbedPanelItem:
-            text: "Disparity"
-            Image:
-                id: disparity
-        TabbedPanelItem:
-            text: "Left"
-            Image:
-                id: left
-        TabbedPanelItem:
-            text: "Right"
-            Image:
-                id: right
+        BoxLayout:
+            size_hint_x: 0.3
+            orientation: 'vertical'
+            Label:
+                text: "state:\\n" + str(app.amiga_state)
+            Label:
+                text: "speed:\\n" + str(app.amiga_speed) + "  [m/s]"
+            Label:
+                text: "angular rate:\\n" + str(app.amiga_rate) + "  [rad/s]"
+        VirtualJoystickWidget:
+            id: joystick
+        TabbedPanel:
+            do_default_tab: False
+            TabbedPanelItem:
+                text: "Rgb"
+                Image:
+                    id: rgb
+            TabbedPanelItem:
+                text: "Disparity"
+                Image:
+                    id: disparity
+            TabbedPanelItem:
+                text: "Left"
+                Image:
+                    id: left
+            TabbedPanelItem:
+                text: "Right"
+                Image:
+                    id: right
 """
+
+
+def relative_cord_in_widget(
+    widget: Widget, touch: MouseMotionEvent, scale: Tuple[float, float] = (-1.0, 1.0)
+) -> Optional[Tuple[float, float]]:
+    """Returns the coordinates of the touch on the scale IFF it occurs within the bounds of the widget."""
+    x_s = (widget.pos[0], widget.pos[0] + widget.width)
+    y_s = (widget.pos[1], widget.pos[1] + widget.height)
+
+    if not (x_s[0] < touch.x < x_s[1]) or not (y_s[0] < touch.y < y_s[1]):
+        return None
+
+    return (
+        scale[0] + (touch.x - x_s[0]) * (scale[1] - scale[0]) / (widget.width),
+        scale[0] + (touch.y - y_s[0]) * (scale[1] - scale[0]) / (widget.height),
+    )
 
 
 class VirtualJoystickWidget(Widget):
@@ -83,25 +112,6 @@ class VirtualJoystickWidget(Widget):
         self.pose: tuple[float, float] = (0.0, 0.0)
         self.joystick_rad = 100
 
-    @staticmethod
-    def relative_cord_in_widget(
-        widget: Widget, touch: MouseMotionEvent, scale: Tuple[float, float] = (-1.0, 1.0), buffer: float = 0
-    ) -> Optional[Tuple[float, float]]:
-        """Returns the coordinates of the touch on the scale IFF it occurs within the bounds of the widget (plus
-        the buffer).
-
-        The buffer is useful to draw a complete shape within the bounds
-        """
-        xs = (widget.pos[0] + buffer, widget.pos[0] + widget.width - buffer)
-        ys = (widget.pos[1] + buffer, widget.pos[1] + widget.height - buffer)
-        if not (xs[0] < touch.x < xs[1]) or not (ys[0] < touch.y < ys[1]):
-            return None
-
-        return (
-            scale[0] + (touch.x - xs[0]) * (scale[1] - scale[0]) / (widget.width - 2 * buffer),
-            scale[0] + (touch.y - ys[0]) * (scale[1] - scale[0]) / (widget.height - 2 * buffer),
-        )
-
     def on_touch_down(self, touch):
         if isinstance(touch, MouseMotionEvent) and int(os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)):
             return True
@@ -109,9 +119,11 @@ class VirtualJoystickWidget(Widget):
             if w.dispatch("on_touch_down", touch):
                 return True
         #
-        res = self.relative_cord_in_widget(widget=self, touch=touch, buffer=self.joystick_rad)
+        res = relative_cord_in_widget(widget=self, touch=touch)
         if res:
-            self.pose = res
+            # Clip to unit circle
+            div = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
+            self.pose = (res[0] / div, res[1] / div)
         return False
 
     def on_touch_move(self, touch):
@@ -121,9 +133,11 @@ class VirtualJoystickWidget(Widget):
             if w.dispatch("on_touch_move", touch):
                 return True
 
-        res = self.relative_cord_in_widget(widget=self, touch=touch, buffer=self.joystick_rad)
+        res = relative_cord_in_widget(widget=self, touch=touch)
         if res:
-            self.pose = res
+            # Clip to unit circle
+            div = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
+            self.pose = (res[0] / div, res[1] / div)
         return False
 
     def on_touch_up(self, touch):
@@ -138,6 +152,12 @@ class VirtualJoystickWidget(Widget):
 
     def draw(self):
         self.canvas.clear()
+
+        self.canvas.add(Color(0.2, 0.2, 0.2, 1.0, mode="rgba"))
+        background = Ellipse(
+            pos=(self.center_x - self.width // 2, self.center_y - self.height // 2), size=(self.width, self.height)
+        )
+        self.canvas.add(background)
 
         x_abs, y_abs = (
             self.center_x + 0.5 * self.pose[0] * (self.width - 2 * self.joystick_rad),
@@ -185,15 +205,18 @@ class VirtualPendantApp(App):
         return Builder.load_string(kv)
 
     def update_kivy_strings(self):
-        self.amiga_state = AmigaControlState(self.amiga_tpdo1.state).name
+        self.amiga_state = AmigaControlState(self.amiga_tpdo1.state).name[6:]
         self.amiga_speed = str(self.amiga_tpdo1.meas_speed)
         self.amiga_rate = str(self.amiga_tpdo1.meas_ang_rate)
+
+    def on_exit_btn(self):
+        App.get_running_app().stop()
 
     async def draw_joystick(self):
         """Loop over drawing the VirtualJoystickWidget."""
         while self.root is None:
             await asyncio.sleep(0.01)
-        joystick = self.root.ids["joystick"]
+        joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
             joystick.draw()
             await asyncio.sleep(0.01)
@@ -229,9 +252,8 @@ class VirtualPendantApp(App):
         return await asyncio.gather(run_wrapper(), *self.tasks)
 
     async def stream_camera(self, client: OakCameraClient) -> None:
-        """This task listens to the camera client's stream and populates
-        the tabbed panel with all 4 image streams from the oak camera
-        """
+        """This task listens to the camera client's stream and populates the tabbed panel with all 4 image streams
+        from the oak camera."""
         while self.root is None:
             await asyncio.sleep(0.01)
 
@@ -276,7 +298,7 @@ class VirtualPendantApp(App):
         """The pose generator yields an AmigaAmigaRpdo1 (auto control command) for the canbus client to send on the
         bus at the specified period (recommended 50hz) based on the onscreen joystick position."""
         assert self.root is not None, ""
-        joystick = self.root.ids["joystick"]
+        joystick: VirtualJoystickWidget = self.root.ids["joystick"]
 
         while True:
             rpdo1 = AmigaRpdo1(
