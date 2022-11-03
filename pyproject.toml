@@ -1,0 +1,17 @@
+# As per https://github.com/pypa/setuptools/blob/main/docs/userguide/quickstart.rst
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[options]
+dependencies = [
+    "amiga-brain-api @ git+https://github.com/farm-ng/amiga-brain-api@canbus-packet",
+    "kivy",
+]
+
+
+[options.extras_require]
+dev = [
+    "black",
+]
