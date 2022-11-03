@@ -106,11 +106,23 @@ def relative_cord_in_widget(
     )
 
 
+class Vec2:
+    """
+    Simple class for keeping joystick coords in x & y terms.
+    Defaults to a centered joystick (0,0).
+    Clips values to range [-1.0, 1.0], as with the Amiga pendant.
+    """
+
+    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
+        self.x: float = min(max(-1.0, x), 1.0)
+        self.y: float = min(max(-1.0, y), 1.0)
+
+
 class VirtualJoystickWidget(Widget):
     def __init__(self, **kwargs) -> None:
         super(VirtualJoystickWidget, self).__init__(**kwargs)
 
-        self.pose: tuple[float, float] = (0.0, 0.0)
+        self.pose: Vec2 = Vec2()
         self.joystick_rad: int = 100
 
     def on_touch_down(self, touch: MouseMotionEvent) -> bool:
@@ -128,7 +140,7 @@ class VirtualJoystickWidget(Widget):
         if res:
             # Clip to unit circle
             div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = (res[0] / div, res[1] / div)
+            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
         return False
 
     def on_touch_move(self, touch: MouseMotionEvent) -> bool:
@@ -146,7 +158,7 @@ class VirtualJoystickWidget(Widget):
         if res:
             # Clip to unit circle
             div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = (res[0] / div, res[1] / div)
+            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
         return False
 
     def on_touch_up(self, touch: MouseMotionEvent) -> bool:
@@ -158,7 +170,7 @@ class VirtualJoystickWidget(Widget):
             if w.dispatch("on_touch_up", touch):
                 return True
 
-        self.pose = (0.0, 0.0)
+        self.pose = Vec2()
         return False
 
     def draw(self) -> None:
@@ -175,8 +187,8 @@ class VirtualJoystickWidget(Widget):
 
         # Draw joystick at position
         x_abs, y_abs = (
-            self.center_x + 0.5 * self.pose[0] * (self.width - 2 * self.joystick_rad),
-            self.center_y + 0.5 * self.pose[1] * (self.height - 2 * self.joystick_rad),
+            self.center_x + 0.5 * self.pose.x * (self.width - 2 * self.joystick_rad),
+            self.center_y + 0.5 * self.pose.y * (self.height - 2 * self.joystick_rad),
         )
         self.canvas.add(Color(1.0, 1.0, 0.0, 1.0, mode="rgba"))
         self.canvas.add(
@@ -328,8 +340,8 @@ class VirtualPendantApp(App):
         while True:
             rpdo1 = AmigaRpdo1(
                 state_req=AmigaControlState.STATE_AUTO_ACTIVE,
-                cmd_speed=self.max_speed * joystick.pose[1],
-                cmd_ang_rate=self.max_angular_rate * -joystick.pose[0],
+                cmd_speed=self.max_speed * joystick.pose.y,
+                cmd_ang_rate=self.max_angular_rate * -joystick.pose.x,
             )
             msg = canbus_pb2.RawCanbusMessage(
                 id=rpdo1.cob_id + DASHBOARD_NODE_ID, data=rpdo1.encode()
