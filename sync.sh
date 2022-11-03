@@ -42,6 +42,7 @@ if [[ $state == "start" ]]; then
         -i ".*" \
         -i "!.vscode" \
         -i "**/*venv*" \
+        --sync-mode=one-way-safe \
         $DIR \
         amiga:/data/home/amiga/code/
 elif [[ $state == "stop" ]]; then
