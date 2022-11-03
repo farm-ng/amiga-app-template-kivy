@@ -1,2 +1,2 @@
 kivy
--e ./../../lib/
+git+https://github.com/farm-ng/amiga-brain-api@canbus-packet
