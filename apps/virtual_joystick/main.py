@@ -15,7 +15,8 @@ from farm_ng.canbus import canbus_pb2
 from farm_ng.canbus.canbus_client import CanbusClient
 from farm_ng.canbus.canbus_client import CanbusClientConfig
 from farm_ng.canbus.packet import AmigaControlState
-from farm_ng.canbus.packet import AmigaRpdo1
+from farm_ng.canbus.packet import make_amiga_rpdo1_proto
+from farm_ng.canbus.packet import parse_amiga_tpdo1_proto
 from farm_ng.canbus.packet import AmigaTpdo1
 from farm_ng.canbus.packet import DASHBOARD_NODE_ID
 from farm_ng.oak import oak_pb2
@@ -236,13 +237,14 @@ class VirtualPendantApp(App):
     def on_exit_btn(self) -> None:
         App.get_running_app().stop()
 
-    async def draw_joystick(self) -> None:
+    async def draw(self) -> None:
         """Loop over drawing the VirtualJoystickWidget."""
         while self.root is None:
             await asyncio.sleep(0.01)
         joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
             joystick.draw()
+            self.update_kivy_strings()
             await asyncio.sleep(0.01)
 
     async def app_func(self):
@@ -266,7 +268,7 @@ class VirtualPendantApp(App):
         camera_client: OakCameraClient = OakCameraClient(camera_config)
 
         # Drawing task(s)
-        self.async_tasks.append(asyncio.ensure_future(self.draw_joystick()))
+        self.async_tasks.append(asyncio.ensure_future(self.draw()))
 
         # Canbus task(s)
         self.async_tasks.append(
@@ -338,13 +340,10 @@ class VirtualPendantApp(App):
 
         joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
-            rpdo1 = AmigaRpdo1(
+            msg: canbus_pb2.RawCanbusMessage = make_amiga_rpdo1_proto(
                 state_req=AmigaControlState.STATE_AUTO_ACTIVE,
                 cmd_speed=self.max_speed * joystick.pose.y,
                 cmd_ang_rate=self.max_angular_rate * -joystick.pose.x,
-            )
-            msg = canbus_pb2.RawCanbusMessage(
-                id=rpdo1.cob_id + DASHBOARD_NODE_ID, data=rpdo1.encode()
             )
             yield canbus_pb2.SendCanbusMessageRequest(message=msg)
             await asyncio.sleep(period)
@@ -372,9 +371,10 @@ class VirtualPendantApp(App):
                 break
             if response and response.status == canbus_pb2.ReplyStatus.OK:
                 for proto in response.messages.messages:
-                    if proto.id == AmigaTpdo1.cob_id + DASHBOARD_NODE_ID:
-                        self.amiga_tpdo1 = AmigaTpdo1.from_can_data(proto.data)
-                        self.update_kivy_strings()
+                    amiga_tpdo1: Optional[AmigaTpdo1] = parse_amiga_tpdo1_proto(proto)
+                    if amiga_tpdo1:
+                        self.amiga_tpdo1 = amiga_tpdo1
+
             await asyncio.sleep(0.001)
 
 
