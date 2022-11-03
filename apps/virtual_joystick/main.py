@@ -288,14 +288,11 @@ class VirtualPendantApp(App):
         while True:
             while client.state.value != oak_pb2.OakServiceState.RUNNING:
                 # start the streaming service
-                await client.start_service()
-                await asyncio.sleep(0.01)
+                await client.connect_to_service()
 
             if response_stream is None:
                 # get the streaming object
                 response_stream = client.stream_frames(every_n=self.stream_every_n)
-                await asyncio.sleep(0.01)
-                continue
 
             response: oak_pb2.StreamFramesReply = await response_stream.read()
             if response and response.status == oak_pb2.ReplyStatus.OK:
@@ -351,15 +348,12 @@ class VirtualPendantApp(App):
 
         while True:
             while client.state.value != canbus_pb2.CanbusServiceState.RUNNING:
-                client.start_service()
-                await asyncio.sleep(0.01)
+                await client.connect_to_service()
 
             if response_stream is None:
                 response_stream = client.stub.streamCanbusMessages(
                     canbus_pb2.StreamCanbusRequest()
                 )
-                await asyncio.sleep(0.01)
-                continue
 
             response: canbus_pb2.StreamCanbusReply = await response_stream.read()
             if response == grpc.aio.EOF:
