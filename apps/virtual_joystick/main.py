@@ -15,7 +15,8 @@ from farm_ng.canbus import canbus_pb2
 from farm_ng.canbus.canbus_client import CanbusClient
 from farm_ng.canbus.canbus_client import CanbusClientConfig
 from farm_ng.canbus.packet import AmigaControlState
-from farm_ng.canbus.packet import AmigaRpdo1
+from farm_ng.canbus.packet import make_amiga_rpdo1_proto
+from farm_ng.canbus.packet import parse_amiga_tpdo1_proto
 from farm_ng.canbus.packet import AmigaTpdo1
 from farm_ng.canbus.packet import DASHBOARD_NODE_ID
 from farm_ng.oak import oak_pb2
@@ -106,11 +107,23 @@ def relative_cord_in_widget(
     )
 
 
+class Vec2:
+    """
+    Simple class for keeping joystick coords in x & y terms.
+    Defaults to a centered joystick (0,0).
+    Clips values to range [-1.0, 1.0], as with the Amiga pendant.
+    """
+
+    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
+        self.x: float = min(max(-1.0, x), 1.0)
+        self.y: float = min(max(-1.0, y), 1.0)
+
+
 class VirtualJoystickWidget(Widget):
     def __init__(self, **kwargs) -> None:
         super(VirtualJoystickWidget, self).__init__(**kwargs)
 
-        self.pose: tuple[float, float] = (0.0, 0.0)
+        self.pose: Vec2 = Vec2()
         self.joystick_rad: int = 100
 
     def on_touch_down(self, touch: MouseMotionEvent) -> bool:
@@ -128,7 +141,7 @@ class VirtualJoystickWidget(Widget):
         if res:
             # Clip to unit circle
             div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = (res[0] / div, res[1] / div)
+            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
         return False
 
     def on_touch_move(self, touch: MouseMotionEvent) -> bool:
@@ -146,7 +159,7 @@ class VirtualJoystickWidget(Widget):
         if res:
             # Clip to unit circle
             div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = (res[0] / div, res[1] / div)
+            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
         return False
 
     def on_touch_up(self, touch: MouseMotionEvent) -> bool:
@@ -158,7 +171,7 @@ class VirtualJoystickWidget(Widget):
             if w.dispatch("on_touch_up", touch):
                 return True
 
-        self.pose = (0.0, 0.0)
+        self.pose = Vec2()
         return False
 
     def draw(self) -> None:
@@ -175,8 +188,8 @@ class VirtualJoystickWidget(Widget):
 
         # Draw joystick at position
         x_abs, y_abs = (
-            self.center_x + 0.5 * self.pose[0] * (self.width - 2 * self.joystick_rad),
-            self.center_y + 0.5 * self.pose[1] * (self.height - 2 * self.joystick_rad),
+            self.center_x + 0.5 * self.pose.x * (self.width - 2 * self.joystick_rad),
+            self.center_y + 0.5 * self.pose.y * (self.height - 2 * self.joystick_rad),
         )
         self.canvas.add(Color(1.0, 1.0, 0.0, 1.0, mode="rgba"))
         self.canvas.add(
@@ -224,13 +237,14 @@ class VirtualPendantApp(App):
     def on_exit_btn(self) -> None:
         App.get_running_app().stop()
 
-    async def draw_joystick(self) -> None:
+    async def draw(self) -> None:
         """Loop over drawing the VirtualJoystickWidget."""
         while self.root is None:
             await asyncio.sleep(0.01)
         joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
             joystick.draw()
+            self.update_kivy_strings()
             await asyncio.sleep(0.01)
 
     async def app_func(self):
@@ -254,7 +268,7 @@ class VirtualPendantApp(App):
         camera_client: OakCameraClient = OakCameraClient(camera_config)
 
         # Drawing task(s)
-        self.async_tasks.append(asyncio.ensure_future(self.draw_joystick()))
+        self.async_tasks.append(asyncio.ensure_future(self.draw()))
 
         # Canbus task(s)
         self.async_tasks.append(
@@ -288,14 +302,11 @@ class VirtualPendantApp(App):
         while True:
             while client.state.value != oak_pb2.OakServiceState.RUNNING:
                 # start the streaming service
-                await client.start_service()
-                await asyncio.sleep(0.01)
+                await client.connect_to_service()
 
             if response_stream is None:
                 # get the streaming object
                 response_stream = client.stream_frames(every_n=self.stream_every_n)
-                await asyncio.sleep(0.01)
-                continue
 
             response: oak_pb2.StreamFramesReply = await response_stream.read()
             if response and response.status == oak_pb2.ReplyStatus.OK:
@@ -329,13 +340,10 @@ class VirtualPendantApp(App):
 
         joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
-            rpdo1 = AmigaRpdo1(
+            msg: canbus_pb2.RawCanbusMessage = make_amiga_rpdo1_proto(
                 state_req=AmigaControlState.STATE_AUTO_ACTIVE,
-                cmd_speed=self.max_speed * joystick.pose[1],
-                cmd_ang_rate=self.max_angular_rate * -joystick.pose[0],
-            )
-            msg = canbus_pb2.RawCanbusMessage(
-                id=rpdo1.cob_id + DASHBOARD_NODE_ID, data=rpdo1.encode()
+                cmd_speed=self.max_speed * joystick.pose.y,
+                cmd_ang_rate=self.max_angular_rate * -joystick.pose.x,
             )
             yield canbus_pb2.SendCanbusMessageRequest(message=msg)
             await asyncio.sleep(period)
@@ -351,24 +359,22 @@ class VirtualPendantApp(App):
 
         while True:
             while client.state.value != canbus_pb2.CanbusServiceState.RUNNING:
-                client.start_service()
-                await asyncio.sleep(0.01)
+                await client.connect_to_service()
 
             if response_stream is None:
                 response_stream = client.stub.streamCanbusMessages(
                     canbus_pb2.StreamCanbusRequest()
                 )
-                await asyncio.sleep(0.01)
-                continue
 
             response: canbus_pb2.StreamCanbusReply = await response_stream.read()
             if response == grpc.aio.EOF:
                 break
             if response and response.status == canbus_pb2.ReplyStatus.OK:
                 for proto in response.messages.messages:
-                    if proto.id == AmigaTpdo1.cob_id + DASHBOARD_NODE_ID:
-                        self.amiga_tpdo1 = AmigaTpdo1.from_can_data(proto.data)
-                        self.update_kivy_strings()
+                    amiga_tpdo1: Optional[AmigaTpdo1] = parse_amiga_tpdo1_proto(proto)
+                    if amiga_tpdo1:
+                        self.amiga_tpdo1 = amiga_tpdo1
+
             await asyncio.sleep(0.001)
 
 
