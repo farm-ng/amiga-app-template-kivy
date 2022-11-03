@@ -31,7 +31,7 @@ bootstrap() {
             echo "requirements.txt md5sum detected, will update venv"
         fi
     fi
-    
+
     if [ ! -f ${venv}/.lock ]; then
         echo "creating venv ${venv}"
         python3 -m venv ${venv}
