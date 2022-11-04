@@ -27,9 +27,6 @@ from farm_ng.oak.camera_client import OakCameraClientConfig
 os.environ["KIVY_NO_ARGS"] = "1"
 
 from kivy.config import Config  # noreorder # noqa: E402
-from kivy.graphics import Color, Ellipse  # noqa: E402
-from kivy.input.providers.mouse import MouseMotionEvent  # noqa: E402
-from kivy.properties import StringProperty  # noqa: E402
 
 Config.set("graphics", "resizable", False)
 Config.set("graphics", "width", "1280")
@@ -38,6 +35,9 @@ Config.set("graphics", "fullscreen", "false")
 Config.set("input", "mouse", "mouse,disable_on_activity")
 Config.set("kivy", "keyboard_mode", "systemanddock")
 
+from kivy.graphics import Color, Ellipse  # noqa: E402
+from kivy.input.providers.mouse import MouseMotionEvent  # noqa: E402
+from kivy.properties import StringProperty  # noqa: E402
 from kivy.app import App  # noqa: E402
 from kivy.lang.builder import Builder  # noqa: E402
 from kivy.uix.widget import Widget  # noqa: E402

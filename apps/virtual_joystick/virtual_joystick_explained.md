@@ -63,3 +63,45 @@ They are:
 
 - [farm_ng_core](https://github.com/farm-ng/farm-ng-core)
 - [farm_ng_amiga](https://github.com/farm-ng/amiga-brain-api)
+
+
+## Code Breakdown
+
+We recommend opening the [`virtual_joystick/main.py`](https://github.com/farm-ng/amiga-brain-example/blob/main/apps/virtual_joystick/main.py) example on the side as you read through this breakdown.
+
+NOTE: This assumes you have some experience with Python programming.
+
+### imports
+
+We start with generic Python imports that are used in the app,
+followed by imports from our [farm-ng-base libraries](#farm-ng-base-libraries) such as `farm_ng.canbus` and `farm_ng.oak`.
+These are both defined in the [farm_ng_amiga](https://github.com/farm-ng/amiga-brain-api) package.
+
+With the kivy imports, things are slightly more complicated.
+Before any kivy imports, we must define:
+```Python
+# Must come before kivy imports
+os.environ["KIVY_NO_ARGS"] = "1"
+```
+so that the command line args for the app is used, rather than the default kivy command line args.
+
+Next we import kivy `Config` and define the config parameters we recommend for running kivy applications on the brain.
+
+```Python
+from kivy.config import Config  # noreorder # noqa: E402
+
+Config.set("graphics", "resizable", False)
+Config.set("graphics", "width", "1280")
+Config.set("graphics", "height", "800")
+Config.set("graphics", "fullscreen", "false")
+Config.set("input", "mouse", "mouse,disable_on_activity")
+Config.set("kivy", "keyboard_mode", "systemanddock")
+```
+
+This should come before importing any other Kivy modules, as stated in [kivy - Configuration object](https://kivy.org/doc/stable/api-kivy.config.html).
+
+Finally we import the remaining kivy modules we use in our app, with the
+```Python
+# noqa: E402
+```
+flag, so any `pre-commit` formatters don't move these imports above the configuration setting.
