@@ -200,3 +200,39 @@ Define two kivy [`Slider`](https://kivy.org/doc/stable/api-kivy.uix.slider.html)
 Play around with where you can put these and how you can link them directly to the value in the `VirtualPendantApp`.
 
 Just remember, the actual rates the amiga drives at are limited by the vehicle control unit (VCU), so don't be surprised if the true max speed doesn't reflect the slider.
+
+
+### VirtualJoystickWidget
+
+The `VirtualJoystickWidget` inherits from the kivy `Widget` class, so it has all the features of a generic `Widget` and anything we add to it.
+For this to actually work, it is important to initialize as:
+```Python
+class VirtualJoystickWidget(Widget):
+    def __init__(self, **kwargs) -> None:
+        super(VirtualJoystickWidget, self).__init__(**kwargs)
+```
+
+
+#### draw
+
+We define how the virtual joystick will draw here, and this function has no requirement from kivy to be named `draw`.
+In this function, we draw in the widget's [`Canvas`](https://kivy.org/doc/stable/api-kivy.graphics.instructions.html).
+
+For each call of `draw`, we erase what was previously drawn on the widget canvas.
+
+```Python
+self.canvas.clear()
+```
+
+| NOTE: Careful, if you are drawing on top of an `Image` widget this will erase the image too!
+
+We draw two shapes on the canvas with the kivy [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html) package.
+Kivy is drawn in pixel coordinates of the `Window`, starting in the bottom left, with `+x` to the right and `+y` up.
+
+We use [`Widget`](https://kivy.org/doc/stable/api-kivy.uix.widget.html) parameters, such as [`center`](https://kivy.org/doc/stable/api-kivy.uix.widget.html#kivy.uix.widget.Widget.center), [`pos`](https://kivy.org/doc/stable/api-kivy.uix.widget.html#kivy.uix.widget.Widget.pos), and [`size`](https://kivy.org/doc/stable/api-kivy.uix.widget.html#kivy.uix.widget.Widget.pos), to determine where to draw the stable circle representing the range of the joystick.
+
+We do the same for the moving joystick, but map the `joystick_pose` value into pixel coordinates, and offset it from the center of the `VirtualJoystickWidget`.
+
+Reference: [`Canvas`](https://kivy.org/doc/stable/api-kivy.graphics.instructions.html)
+
+Reference: [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html)
