@@ -321,3 +321,157 @@ These tasks include the app specific functions, defined in app, as well as two g
 `poll_service_state()` regularly checks the state of the gRPC service the client is connected to, and updates the `state` parameter of the client.
 The `state` can then be checked wherever relevant in the app to ensure the services are running.
 It's recommended to check this state every iteration in each asynchronous loop.
+
+
+#### stream_canbus
+
+This task:
+- listens to the canbus client's stream
+- filters for `AmigaTpdo1` messages
+- extracts useful values from `AmigaTpdo1` messages
+
+
+| NOTE: the custom defined async functions need to be defined with the `async` decorator.
+
+
+```Python
+while self.root is None:
+    await asyncio.sleep(0.01)
+```
+This prevents any of the async functions from actually doing anything until the root of the kivy App is initialized.
+
+```Python
+response_stream: Optional[Generator[canbus_pb2.StreamCanbusReply]] = None
+```
+
+Here we are being explicit the type of stream we will be connecting to / declaring the type `response_stream` will contain (with the `Optional` decorator because it starts as `None` until we are ready to initialize it), but you may need a little more gRPC understanding to create this line.
+
+##### gRPC life cycle deep dive
+
+As explained in the [gRPC core concepts - RPC life cycle](https://grpc.io/docs/what-is-grpc/core-concepts/#rpc-life-cycle) section, there are 4 types server methods.
+
+- [Unary](https://grpc.io/docs/what-is-grpc/core-concepts/#unary-rpc): single request -> single response
+- [Server streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#server-streaming-rpc): single request -> stream of responses
+- [Client streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#client-streaming-rpc): stream of requests -> single response
+- [Bidirectional streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#bidirectional-streaming-rpc): stream of requests -> stream of responses
+
+##### Back to stream_canbus
+
+*Most* of our services have a server streaming RPC set up, so the canbus client can send a single request to the canbus service and proceed to receive the stream of canbus messages until the stream is explicitly stopped, or either of the client or service is killed.
+
+And in this case we will be receiving a server stream from the `canbus` service of proto defined message `StreamCanbusReply`.
+This is defined as the RPC [streamCanbusMessages](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto).
+
+```Python
+while True:
+    while client.state.value != canbus_pb2.CanbusServiceState.RUNNING:
+        await client.connect_to_service()
+
+    if response_stream is None:
+        response_stream = client.stub.streamCanbusMessages(
+            canbus_pb2.StreamCanbusRequest()
+        )
+```
+
+This pattern is relevant as the task starts.
+Basically, we get stuck in a loop until we see that the service is in state `RUNNING`, which is accomplished by using the client defined method [`connect_to_service()`](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/canbus_client.py) (a method we implement in all of our clients).
+
+Once we are connected to the client, we initialize the stream of responses in our server streaming RPC with the [client *stub*](https://grpc.io/docs/what-is-grpc/core-concepts/#using-the-api).
+
+| NOTE: Note the names of the methods and protos match those defined in [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto). This is a requirement of gRPC.
+
+Now that our `CanbusClient` is connected to the canbus service and the stream of `StreamCanbusReply` messages has been requested, the fun starts.
+
+```Python
+response: canbus_pb2.StreamCanbusReply = await response_stream.read()
+```
+Each iteration we stop at this line and wait for the next `StreamCanbusReply` response on the queue, using the async `await` expression.
+
+```Python
+if response == grpc.aio.EOF:
+    # Checks for end of stream
+    break
+if response and response.status == canbus_pb2.ReplyStatus.OK:
+    for proto in response.messages.messages:
+        amiga_tpdo1: Optional[AmigaTpdo1] = parse_amiga_tpdo1_proto(proto)
+        if amiga_tpdo1:
+            self.amiga_tpdo1 = amiga_tpdo1
+
+await asyncio.sleep(0.001)
+```
+
+With our fresh `StreamCanbusReply` in hand, we check if the message contains the end of the stream (not likely in our application since we stream until killed, but is still good practice) before proceeding.
+
+The `StreamCanbusReply`, defined in [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto), can contain repeated messages of format `RawCanbusMessage`.
+So we iterate through these, and for each message use the `parse_amiga_tpdo1_proto()` utility to return an `AmigaTpdo1` packet, both defined in [farm_ng.canbus.packet](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/packet.py), if the message matches the id and format we expect.
+Since the can bus operates as an all-to-all communication network, we have to filter out messages we aren't interested in and can't assume all messages are what we want.
+
+The `AmigaTpdo1` message comes from the dashboard and contains the:
+- state of the Amiga (AmigaControlState)
+- measured speed (forward positive)
+- measured angular rate (left positive)
+
+| NOTE: This is the information you'll use for closed loop control!
+
+```Python
+# Shorter sleep than typical 10ms since canbus is very high rate
+await asyncio.sleep(0.001)
+```
+Finally we sleep for 1 ms before the next iteration of the `while` loop.
+Typically we sleep for 10 ms, as you'll see in `stream_camera`
+
+Reference: [farm_ng.canbus.canbus_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/canbus_client.py)
+
+Reference: [farm_ng.canbus.packet](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/packet.py)
+
+Reference: [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto)
+
+
+#### stream_camera
+
+This task listens to the camera client's stream and populates the tabbed panel with all 4 image streams from the oak camera.
+You'll see a lot of similarity to [`stream_canbus`](#stream_canbus), as this task is also connecting to a server streaming RPC.
+
+The first obvious difference you'll notice is the use of [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto) definitions rather than canbus protos.
+
+
+Next, when creating the `response_stream` we wrap the stub call with [`stream_frames()`](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/oak/camera_client.py), but in practice the same thing is happening. The `StreamFramesRequest` does take an argument called `every_n` which is used to skip frames if you want to throttle the rate of images in the stream.
+You can change this value with the `--stream-every-n` command line argument.
+
+```Python
+# get image and show
+for view_name in ["rgb", "disparity", "left", "right"]:
+    self.root.ids[view_name].texture = CoreImage(
+        io.BytesIO(getattr(frame, view_name).image_data), ext="jpg"
+    ).texture
+```
+
+Once the `StreamFramesReply` comes in, for each loop, we update the images displayed in the kivy `TabbedPanel` of our app.
+We've matched the tab `id:` name to the frame names coming from the [`OakService`](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto), as defined in `OakSyncFrame`, so we can easily match tab to image type by stepping through a list.
+
+| NOTE: Reminder we can access a `Widget` directly using the widget `id:` as in
+```Python
+FOO_WIDGET = self.root.ids['FOO_WIDGET_ID']
+```
+We assign the kivy [`Image.texture`](https://kivy.org/doc/stable/api-kivy.uix.image.html#kivy.uix.image.Image.texture) the kivy `CoreImage.texture` from the unpacked jpg images streamed by the `OakService`.
+
+Reference: [farm_ng.oak.camera_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/oak/camera_client.py)
+
+Reference: [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto)
+
+
+#### send_can_msgs
+
+...
+
+
+#### pose_generator
+
+
+...
+
+
+#### draw
+
+
+...
