@@ -69,7 +69,7 @@ They are:
 
 We recommend opening the [`virtual_joystick/main.py`](https://github.com/farm-ng/amiga-brain-example/blob/main/apps/virtual_joystick/main.py) example on the side as you read through this breakdown.
 
-| NOTE: This assumes you have some experience with Python programming.
+> NOTE: This assumes you have some experience with Python programming.
 
 ### imports
 
@@ -120,7 +120,7 @@ Next we define our application in the Kv language.
 This definition can be a string at the top of a `.py` file or can be defined
 in a separate `.kv` file.
 
-| NOTE: We explain the kivy app that we create in this example, but this is by no means a thorough introduction to the kivy language. Try the [kivy tutorials](https://kivy.org/doc/stable/tutorials-index.html) and use the [kivy API](https://kivy.org/doc/stable/api-index.html) for more information on creating applications with kivy.
+> NOTE: We explain the kivy app that we create in this example, but this is by no means a thorough introduction to the kivy language. Try the [kivy tutorials](https://kivy.org/doc/stable/tutorials-index.html) and use the [kivy API](https://kivy.org/doc/stable/api-index.html) for more information on creating applications with kivy.
 
 Two key components of kivy are [`Layouts`](https://kivy.org/doc/stable/gettingstarted/layouts.html#) and [`Widgets`](https://kivy.org/doc/stable/api-kivy.uix.html).
 Kivy also has the concept of nesting, so you may notice in our app we have
@@ -130,21 +130,21 @@ Kivy also has the concept of nesting, so you may notice in our app we have
 
 The base of our app is a `RelativeLayout`, which contains a `Button` widget and a `BoxLayout`, with multiple nested Widgets and Layouts.
 
-Reference: [Relative Layout](https://kivy.org/doc/stable/api-kivy.uix.relativelayout.html)
+- Reference: [Relative Layout](https://kivy.org/doc/stable/api-kivy.uix.relativelayout.html)
 
 #### Back button
 
 The `Button` is used to exit the app when it is pressed, by calling the `VirtualPendantApp.on_exit_btn()` method.
 
-| NOTE: To be precise it's actually when the button is released due to using the `on_release:` keyword).
+> NOTE: To be precise it's actually when the button is released due to using the `on_release:` keyword).
 
 Since the `VirtualPendantApp` inherits from the kivy `App` class, methods and variables of the `VirtualPendantApp` can be linked with the `app.foo_variable` or `app.bar_method()`
 We define the `Button` with two images, one that shows most of the time, and another that shows while the button is pressed down.
 You can also just define a button with a string, if you just want test instead of an image.
 
-| TIP: [Material Icons](https://github.com/google/material-design-icons) is a nice place to find symbols to use for app buttons / UI features.
+> TIP: [Material Icons](https://github.com/google/material-design-icons) is a nice place to find symbols to use for app buttons / UI features.
 
-Reference: Button](https://kivy.org/doc/stable/api-kivy.uix.button.html)
+- Reference: Button](https://kivy.org/doc/stable/api-kivy.uix.button.html)
 
 #### BoxLayout
 
@@ -153,7 +153,7 @@ We then have a box layout that stacks 3 sub-widgets horizontally (by default):
 2. A custom `Widget` called `VirtualJoystickWidget`, defined in Python below
 3. A [`TabbedPanel`](https://kivy.org/doc/stable/api-kivy.uix.tabbedpanel.html).
 
-Reference: [Box Layout](https://kivy.org/doc/stable/api-kivy.uix.boxlayout.html)
+- Reference: [Box Layout](https://kivy.org/doc/stable/api-kivy.uix.boxlayout.html)
 
 #### Labels
 
@@ -180,9 +180,8 @@ class VirtualPendantApp(App):
         ...
 ```
 
-Reference: [Label](https://kivy.org/doc/stable/api-kivy.uix.label.html)
-
-Reference: [StringProperty](https://kivy.org/doc/stable/api-kivy.properties.html#kivy.properties.StringProperty)
+- Reference: [Label](https://kivy.org/doc/stable/api-kivy.uix.label.html)
+- Reference: [StringProperty](https://kivy.org/doc/stable/api-kivy.properties.html#kivy.properties.StringProperty)
 
 #### VirtualJoystickWidget
 
@@ -198,9 +197,8 @@ We could add more details here to define various `Widget` parameters, for instan
 
 The `TabbedPanel` is used to select between different pages, which in our case is 4 `Image` Widgets.
 
-Reference: [TabbedPanel](https://kivy.org/doc/stable/api-kivy.uix.tabbedpanel.html)
-
-Reference: [Image](https://kivy.org/doc/stable/api-kivy.uix.image.html)
+- Reference: [TabbedPanel](https://kivy.org/doc/stable/api-kivy.uix.tabbedpanel.html)
+- Reference: [Image](https://kivy.org/doc/stable/api-kivy.uix.image.html)
 
 #### Take it further
 
@@ -232,7 +230,7 @@ For each call of `draw`, we erase what was previously drawn on the widget canvas
 self.canvas.clear()
 ```
 
-| NOTE: Careful, if you are drawing on top of an `Image` widget this will erase the image too!
+> NOTE: Careful, if you are drawing on top of an `Image` widget this will erase the image too!
 
 We draw two shapes on the canvas with the kivy [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html) package.
 Kivy is drawn in pixel coordinates of the `Window`, starting in the bottom left, with `+x` to the right and `+y` up.
@@ -241,9 +239,9 @@ We use [`Widget`](https://kivy.org/doc/stable/api-kivy.uix.widget.html) paramete
 
 We do the same for the moving joystick, but map the `joystick_pose` value into pixel coordinates, and offset it from the center of the `VirtualJoystickWidget`.
 
-Reference: [`Canvas`](https://kivy.org/doc/stable/api-kivy.graphics.instructions.html)
+- Reference: [`Canvas`](https://kivy.org/doc/stable/api-kivy.graphics.instructions.html)
 
-Reference: [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html)
+- Reference: [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html)
 
 ### VirtualPendantApp:
 
@@ -331,7 +329,7 @@ This task:
 - extracts useful values from `AmigaTpdo1` messages
 
 
-| NOTE: the custom defined async functions need to be defined with the `async` decorator.
+> NOTE: the custom defined async functions need to be defined with the `async` decorator.
 
 
 ```Python
@@ -378,7 +376,7 @@ Basically, we get stuck in a loop until we see that the service is in state `RUN
 
 Once we are connected to the client, we initialize the stream of responses in our server streaming RPC with the [client *stub*](https://grpc.io/docs/what-is-grpc/core-concepts/#using-the-api).
 
-| NOTE: Note the names of the methods and protos match those defined in [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto). This is a requirement of gRPC.
+> NOTE: Note the names of the methods and protos match those defined in [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto). This is a requirement of gRPC.
 
 Now that our `CanbusClient` is connected to the canbus service and the stream of `StreamCanbusReply` messages has been requested, the fun starts.
 
@@ -411,7 +409,7 @@ The `AmigaTpdo1` message comes from the dashboard and contains the:
 - measured speed (forward positive)
 - measured angular rate (left positive)
 
-| NOTE: This is the information you'll use for closed loop control!
+> NOTE: This is the information you'll use for closed loop control!
 
 ```Python
 # Shorter sleep than typical 10ms since canbus is very high rate
@@ -420,11 +418,11 @@ await asyncio.sleep(0.001)
 Finally we sleep for 1 ms before the next iteration of the `while` loop.
 Typically we sleep for 10 ms, as you'll see in `stream_camera`
 
-Reference: [farm_ng.canbus.canbus_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/canbus_client.py)
+- Reference: [farm_ng.canbus.canbus_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/canbus_client.py)
 
-Reference: [farm_ng.canbus.packet](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/packet.py)
+- Reference: [farm_ng.canbus.packet](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/packet.py)
 
-Reference: [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto)
+- Reference: [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto)
 
 
 #### stream_camera
@@ -449,7 +447,7 @@ for view_name in ["rgb", "disparity", "left", "right"]:
 Once the `StreamFramesReply` comes in, for each loop, we update the images displayed in the kivy `TabbedPanel` of our app.
 We've matched the tab `id:` name to the frame names coming from the [`OakService`](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto), as defined in `OakSyncFrame`, so we can easily match tab to image type by stepping through a list.
 
-| NOTE: Reminder we can access a `Widget` directly using the widget `id:` as in
+> NOTE: Reminder we can access a `Widget` directly using the widget `id:` as in
 ```Python
 FOO_WIDGET = self.root.ids['FOO_WIDGET_ID']
 ```
@@ -460,9 +458,9 @@ await asyncio.sleep(0.01)
 ```
 Lastly, we sleep for our default duration of 10ms before the next iteration.
 
-Reference: [farm_ng.oak.camera_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/oak/camera_client.py)
+- Reference: [farm_ng.oak.camera_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/oak/camera_client.py)
 
-Reference: [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto)
+- Reference: [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto)
 
 
 #### send_can_msgs
@@ -513,7 +511,7 @@ It makes use of the `make_amiga_rpdo1_proto()` method that takes a:
 to construct a [`RawCanbusMessage`](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto).
 These messages, packed into a `SendCanbusMessageRequest`, are `yield`-ed to the canbus service to send on the CAN bus.
 
-| NOTE: The `AmigaRpdo1` message is only a request. The vehicle control unit (VCU) in the Amiga dashboard has safety critical logic that prevents unsafe auto control.
+> NOTE: The `AmigaRpdo1` message is only a request. The vehicle control unit (VCU) in the Amiga dashboard has safety critical logic that prevents unsafe auto control.
 
 ```Python
 await asyncio.sleep(period)
