@@ -123,7 +123,7 @@ class VirtualJoystickWidget(Widget):
     def __init__(self, **kwargs) -> None:
         super(VirtualJoystickWidget, self).__init__(**kwargs)
 
-        self.pose: Vec2 = Vec2()
+        self.joystick_pose: Vec2 = Vec2()
         self.joystick_rad: int = 100
 
     def draw(self) -> None:
@@ -140,8 +140,10 @@ class VirtualJoystickWidget(Widget):
 
         # Draw joystick at position
         x_abs, y_abs = (
-            self.center_x + 0.5 * self.pose.x * (self.width - 2 * self.joystick_rad),
-            self.center_y + 0.5 * self.pose.y * (self.height - 2 * self.joystick_rad),
+            self.center_x
+            + 0.5 * self.joystick_pose.x * (self.width - 2 * self.joystick_rad),
+            self.center_y
+            + 0.5 * self.joystick_pose.y * (self.height - 2 * self.joystick_rad),
         )
         self.canvas.add(Color(1.0, 1.0, 0.0, 1.0, mode="rgba"))
         self.canvas.add(
@@ -196,7 +198,7 @@ class VirtualPendantApp(App):
             if res:
                 # Clip to unit circle
                 div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-                joystick.pose = Vec2(x=res[0] / div, y=res[1] / div)
+                joystick.joystick_pose = Vec2(x=res[0] / div, y=res[1] / div)
             return False
 
         def on_touch_move(window: Window, touch: MouseMotionEvent) -> bool:
@@ -216,7 +218,7 @@ class VirtualPendantApp(App):
             if res:
                 # Clip to unit circle
                 div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-                joystick.pose = Vec2(x=res[0] / div, y=res[1] / div)
+                joystick.joystick_pose = Vec2(x=res[0] / div, y=res[1] / div)
             return False
 
         def on_touch_up(window: Window, touch: MouseMotionEvent) -> bool:
@@ -229,7 +231,7 @@ class VirtualPendantApp(App):
                     return True
             joystick: VirtualJoystickWidget = self.root.ids["joystick"]
 
-            joystick.pose = Vec2()
+            joystick.joystick_pose = Vec2()
             return False
 
         Window.bind(on_touch_down=on_touch_down)
@@ -351,8 +353,8 @@ class VirtualPendantApp(App):
         while True:
             msg: canbus_pb2.RawCanbusMessage = make_amiga_rpdo1_proto(
                 state_req=AmigaControlState.STATE_AUTO_ACTIVE,
-                cmd_speed=self.max_speed * joystick.pose.y,
-                cmd_ang_rate=self.max_angular_rate * -joystick.pose.x,
+                cmd_speed=self.max_speed * joystick.joystick_pose.y,
+                cmd_ang_rate=self.max_angular_rate * -joystick.joystick_pose.x,
             )
             yield canbus_pb2.SendCanbusMessageRequest(message=msg)
             await asyncio.sleep(period)
