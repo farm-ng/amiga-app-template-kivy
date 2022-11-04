@@ -173,22 +173,30 @@ class VirtualPendantApp(App):
 ```
 
 Reference: [Label](https://kivy.org/doc/stable/api-kivy.uix.label.html)
+
 Reference: [StringProperty](https://kivy.org/doc/stable/api-kivy.properties.html#kivy.properties.StringProperty)
 
 #### VirtualJoystickWidget
 
-Since the ...
+Since the `VirtualJoystickWidget` is fully defined in Python below, the only details we need to add is the `id:`, so the Widget can be easily referenced by the `App`.
+This is done with:
+
+```Python
+FOO_WIDGET = self.root.ids['FOO_WIDGET_ID']
+```
+We could add more details here to define various `Widget` parameters, for instance a `size_hint`, but we just leave the default size to be used.
 
 #### TabbedPanel
 
-The TabbedPanel is used to...
+The `TabbedPanel` is used to select between different pages, which in our case is 4 `Image` Widgets.
 
 Reference: [TabbedPanel](https://kivy.org/doc/stable/api-kivy.uix.tabbedpanel.html)
 
+Reference: [Image](https://kivy.org/doc/stable/api-kivy.uix.image.html)
 
 #### Take it further
 
 Define two kivy [`Slider`](https://kivy.org/doc/stable/api-kivy.uix.slider.html) widgets that allow changing `max_speed` & `max_angular_rate`!
 Play around with where you can put these and how you can link them directly to the value in the `VirtualPendantApp`.
 
-Just remember, these values are also limited by the vehicle control unit (VCU), so don't be surprised
+Just remember, the actual rates the amiga drives at are limited by the vehicle control unit (VCU), so don't be surprised if the true max speed doesn't reflect the slider.
