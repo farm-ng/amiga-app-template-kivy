@@ -1,5 +1,17 @@
 # Amiga Brain 'virtual joystick' example
 
+The purpose of this example application and tutorial is to enable you to develop your own custom apps and deploy them to the Amiga brain.
+
+Here we provide an example application that:
+- Receives an oak camera stream
+- Receives the canbus stream
+- Sends canbus commands to control the robot
+- Creates kivy application
+
+We hope that this tutorial is sufficient to get you started on developing your own custom Amiga brain applications.
+If you feel we missed any key details, please let us know so we can help you through it and add it to the tutorial for the next hacker!
+
+
 ## Necessary Background
 
 The Amiga brain app development meets at the intersection of three key libraries, and some farm-ng base libraries:
@@ -40,7 +52,6 @@ kivy has its own language -- [the Kv language](https://kivy.org/doc/stable/guide
 
 We tend to define our apps in the kv language at the top of the app files using `"""` strings, and may add some interaction in Python code.
 In this example, however, we also demonstrate creating a custom kivy `Widget` in Python!
-
 
 ### farm-ng base libraries
 
