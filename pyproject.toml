@@ -1,14 +1,13 @@
 # As per https://github.com/pypa/setuptools/blob/main/docs/userguide/quickstart.rst
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
-
-[options]
-dependencies = [
-    "amiga-brain-api @ git+https://github.com/farm-ng/amiga-brain-api@canbus-packet",
+requires = [
     "kivy",
+    "setuptools>=42",
+    "amiga-brain-api @ git+https://github.com/farm-ng/amiga-brain-api@canbus-packet"
 ]
+
+
+build-backend = "setuptools.build_meta"
 
 
 [options.extras_require]
@@ -17,5 +16,5 @@ dev = [
 ]
 
 
-[tool.distutils.bdist_wheel]
-universal = true
+# [tool.distutils.bdist_wheel]
+# universal = true
