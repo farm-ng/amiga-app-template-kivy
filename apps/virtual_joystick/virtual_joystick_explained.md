@@ -25,7 +25,7 @@ The Amiga brain app development meets at the intersection of three key libraries
 
 ### gRPC
 
-The best place to start to gain an understanding of gRPC is the [gRPC introduction](https://grpc.io/docs/what-is-grpc/introduction/).
+The best place to start to gain an understanding of gRPC is the [gRPC introduction](https://grpc.io/docs/what-is-grpc/introduction/), followed by the [gRPC core concepts](https://grpc.io/docs/what-is-grpc/core-concepts/).
 
 gRPC is used as our communication protocol between services (running in the background) and clients (what you link in your app).
 The communication is through Protocol Buffers, defined in `*proto` files in our [farm-ng-base libraries](#farm-ng-base-libraries).
@@ -76,6 +76,14 @@ We recommend opening the [`virtual_joystick/main.py`](https://github.com/farm-ng
 We start with generic Python imports that are used in the app,
 followed by imports from our [farm-ng-base libraries](#farm-ng-base-libraries) such as `farm_ng.canbus` and `farm_ng.oak`.
 These are both defined in the [farm_ng_amiga](https://github.com/farm-ng/amiga-brain-api) package.
+
+The imports ending in `_pb2` are the compiled `*.proto` definitions we ause in the app.
+For example,
+```Python
+from farm_ng.canbus import canbus_pb2
+```
+imports the proto messages defined in [canbus.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto).
+
 
 With the kivy imports, things are slightly more complicated.
 Before any kivy imports, we must define:
@@ -236,3 +244,80 @@ We do the same for the moving joystick, but map the `joystick_pose` value into p
 Reference: [`Canvas`](https://kivy.org/doc/stable/api-kivy.graphics.instructions.html)
 
 Reference: [Graphics](https://kivy.org/doc/stable/api-kivy.graphics.html)
+
+### VirtualPendantApp:
+
+The `VirtualPendantApp` inherits from the kivy `App` class, so it has all the features of a generic `App` and anything we add to it.
+
+This initialization / inheritance is less strict, requiring only:
+
+```Python
+class VirtualPendantApp(App):
+    def __init__(self, FOO_ARG, BAR_ARG, BAZ_ARG)-> None:
+        super().__init__()
+        ...
+```
+
+#### build
+
+`build` is a default kivy `App` method that we must overwrite with our app's details.
+
+We use the built-in method:
+
+```Python
+Builder.load_string(KV_STRING)
+```
+
+But first, we need to override the default touch handling since we are interacting on a touchscreen.
+
+##### touch handling
+
+`on_touch_down`, `on_touch_move`, and `on_touch_up` define the behavior of when the screen is pressed (or a mouse is clicked when working on a development station).
+
+Because kivy can mis-register touches on the touchscreen, we have a pattern that all of these follow, for instance:
+
+```Python
+def on_touch_down(window: Window, touch: MouseMotionEvent) -> bool:
+    if isinstance(touch, MouseMotionEvent) and int(
+        os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
+    ):
+        return True
+    for w in window.children[:]:
+        if w.dispatch("on_touch_down", touch):
+            return True
+    ...
+```
+
+Where `...` represents the additional logic you would like to occur on the touch down, move, or up.
+
+We then bind these functions to the `Window` with e.g.:
+```Python
+Window.bind(on_touch_down=on_touch_down)
+```
+
+### app_func
+
+We use the `app_func` pattern, with the nested `run_wrapper` to build, run, and manage the list of long duration, asynchronous tasks required by the app.
+
+#### gRPC service clients
+
+First, we configure and create the gRPC clients that will connect to the gRPC services running in the background of the brain.
+The clients are part of the farm-ng API, specifically [farm_ng_amiga](https://github.com/farm-ng/amiga-brain-api).
+
+The clients define an API that allows you to interact with the services. See [`CanbusClient`](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/canbus/canbus_client.py) for an example.
+
+#### async_tasks
+
+We then build the list of asyncio tasks, defined as:
+
+```Python
+# self.async_tasks: List[asyncio.Task]
+self.async_tasks.append(
+        asyncio.ensure_future(FOO_ASYNC_TASK())
+    )
+```
+
+These tasks include the app specific functions, defined in app, as well as two generic the `poll_service_state()` method required for all clients.
+`poll_service_state()` regularly checks the state of the gRPC service the client is connected to, and updates the `state` parameter of the client.
+The `state` can then be checked wherever relevant in the app to ensure the services are running.
+It's recommended to check this state every iteration in each asynchronous loop.
