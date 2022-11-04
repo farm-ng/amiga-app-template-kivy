@@ -13,7 +13,7 @@ requires = [
     "setuptools==65.5.0",
     "urllib3==1.26.12",
     "wheel==0.37.1",
-    "farm-ng-amiga @ git+https://github.com/farm-ng/amiga-brain-api@canbus-packet"
+    "farm-ng-amiga @ git+https://github.com/farm-ng/amiga-brain-api@main"
 ]
 
 
