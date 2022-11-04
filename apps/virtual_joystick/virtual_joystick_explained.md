@@ -455,6 +455,11 @@ FOO_WIDGET = self.root.ids['FOO_WIDGET_ID']
 ```
 We assign the kivy [`Image.texture`](https://kivy.org/doc/stable/api-kivy.uix.image.html#kivy.uix.image.Image.texture) the kivy `CoreImage.texture` from the unpacked jpg images streamed by the `OakService`.
 
+```Python
+await asyncio.sleep(0.01)
+```
+Lastly, we sleep for our default duration of 10ms before the next iteration.
+
 Reference: [farm_ng.oak.camera_client](https://github.com/farm-ng/amiga-brain-api/blob/main/py/farm_ng/oak/camera_client.py)
 
 Reference: [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/oak/oak.proto)
@@ -462,16 +467,83 @@ Reference: [oak.proto](https://github.com/farm-ng/amiga-brain-api/blob/main/prot
 
 #### send_can_msgs
 
-...
+This task ensures the canbus client `sendCanbusMessage` method has the [`pose_generator`](#pose_generator) it will use to send messages on the can bus.
+
+This task uses the [sendCanbusMessage](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto) RPC, which defines a client stream.
+The client stream can be thought of as the inverse of the server streams we've seen so far.
+In this client stream, the canbus client can sends a stream of requests, of type `SendCanbusMessageRequest`, to the canbus service and receives a single message, of type `SendCanbusMessageReply`,  until the stream is explicitly stopped, or either of the client or service is killed.
+In this app, we never actually stop the stream, so don't expect to receive a `SendCanbusMessageReply`.
+
+```Python
+client.stub.sendCanbusMessage(self.pose_generator())
+```
+
+The client streaming RPC is started by passing an iterator containing the messages to stream.
+We use the [`Generator`](https://book.pythontips.com/en/latest/generators.html) defined in [pose_generator](#pose_generator) for our iterator.
+
+Once the root of the kivy app is created, this task ensures the `sendCanbusMessage` RPC starts and then loops forever.
+While it seems unnecessary to loop forever here, it gives you a placeholder for additional logic you may want to implement!
 
 
 #### pose_generator
 
+```Python
+while self.root is None:
+    await asyncio.sleep(0.01)
 
-...
+joystick: VirtualJoystickWidget = self.root.ids["joystick"]
+```
+Once the root of the kivy app is created, the `VirtualJoystickWidget` is accessed by its `id:`.
+
+```Python
+while True:
+    msg: canbus_pb2.RawCanbusMessage = make_amiga_rpdo1_proto(
+        state_req=AmigaControlState.STATE_AUTO_ACTIVE,
+        cmd_speed=self.max_speed * joystick.joystick_pose.y,
+        cmd_ang_rate=self.max_angular_rate * -joystick.joystick_pose.x,
+    )
+    yield canbus_pb2.SendCanbusMessageRequest(message=msg)
+```
+The pose generator yields an `AmigaRpdo1` (auto control command) for the canbus client to send on the bus at the specified period (recommended 50hz) based on the onscreen joystick position.
+It makes use of the `make_amiga_rpdo1_proto()` method that takes a:
+- requested state (AmigaControlState)
+- request speed (forward positive)
+- requested angular rate (left positive)
+
+to construct a [`RawCanbusMessage`](https://github.com/farm-ng/amiga-brain-api/blob/main/protos/farm_ng/canbus/canbus.proto).
+These messages, packed into a `SendCanbusMessageRequest`, are `yield`-ed to the canbus service to send on the CAN bus.
+
+| NOTE: The `AmigaRpdo1` message is only a request. The vehicle control unit (VCU) in the Amiga dashboard has safety critical logic that prevents unsafe auto control.
+
+```Python
+await asyncio.sleep(period)
+```
+
+We sleep to enforce the ideal rate of streaming `AmigaRpdo1` CAN messages, which is 50 hz. You can modify the period parameter, but go to slow and you lose responsiveness, and go too fast and you risk saturating the CAN bus, which can cause loss of communication between all components on the bus.
+
+##### Take it further
+
+Try to add a kivy `Button` widget that toggles the requested `AmigaControlState` so the brain is not constantly trying to take control of the dashboard while running.
+
+Or more advanced, add a button that starts/stops the sending of canbus messages.
+This could require stopping the stream of messages from the generator, signalling to the `sendCanbusMessage` to stop, and re-initializing the `sendCanbusMessage` RPC later.
+
+possible hint: sending `grpc.aio.EOF` might do it...
 
 
 #### draw
 
+```Python
+while self.root is None:
+    await asyncio.sleep(0.01)
 
-...
+joystick: VirtualJoystickWidget = self.root.ids["joystick"]
+```
+Once the root of the kivy app is created, the `VirtualJoystickWidget` is accessed by its `id:`.
+
+We then loop forever, explicitly drawing the `VirtualJoystickWidget` and updating the `StringProperty` strings displayed as `Label` widgets, containing values from the most recent `AmigaTpdo1` message with our simple `update_kivy_strings()` method.
+
+```Python
+await asyncio.sleep(0.01)
+```
+Lastly, we sleep for our default duration of 10ms before the next iteration.
