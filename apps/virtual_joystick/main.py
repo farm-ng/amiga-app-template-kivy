@@ -241,22 +241,14 @@ class VirtualPendantApp(App):
         return Builder.load_string(kv)
 
     def update_kivy_strings(self) -> None:
+        """Updates the `StringProperty` strings displayed as `Label` widgets"""
         self.amiga_state = AmigaControlState(self.amiga_tpdo1.state).name[6:]
         self.amiga_speed = str(self.amiga_tpdo1.meas_speed)
         self.amiga_rate = str(self.amiga_tpdo1.meas_ang_rate)
 
     def on_exit_btn(self) -> None:
+        """Kills the running kivy application"""
         App.get_running_app().stop()
-
-    async def draw(self) -> None:
-        """Loop over drawing the VirtualJoystickWidget."""
-        while self.root is None:
-            await asyncio.sleep(0.01)
-        joystick: VirtualJoystickWidget = self.root.ids["joystick"]
-        while True:
-            joystick.draw()
-            self.update_kivy_strings()
-            await asyncio.sleep(0.01)
 
     async def app_func(self):
         async def run_wrapper() -> None:
@@ -266,20 +258,25 @@ class VirtualPendantApp(App):
             for task in self.async_tasks:
                 task.cancel()
 
-        # configure the canbus client
-        canbus_config: CanbusClientConfig = CanbusClientConfig(
-            address=self.address, port=self.canbus_port
-        )
-        canbus_client: CanbusClient = CanbusClient(canbus_config)
-
         # configure the camera client
         camera_config: OakCameraClientConfig = OakCameraClientConfig(
             address=self.address, port=self.camera_port
         )
         camera_client: OakCameraClient = OakCameraClient(camera_config)
 
-        # Drawing task(s)
-        self.async_tasks.append(asyncio.ensure_future(self.draw()))
+        # configure the canbus client
+        canbus_config: CanbusClientConfig = CanbusClientConfig(
+            address=self.address, port=self.canbus_port
+        )
+        canbus_client: CanbusClient = CanbusClient(canbus_config)
+
+        # Camera task(s)
+        self.async_tasks.append(
+            asyncio.ensure_future(self.stream_camera(camera_client))
+        )
+        self.async_tasks.append(
+            asyncio.ensure_future(camera_client.poll_service_state())
+        )
 
         # Canbus task(s)
         self.async_tasks.append(
@@ -292,15 +289,41 @@ class VirtualPendantApp(App):
             asyncio.ensure_future(canbus_client.poll_service_state())
         )
 
-        # Camera task(s)
-        self.async_tasks.append(
-            asyncio.ensure_future(self.stream_camera(camera_client))
-        )
-        self.async_tasks.append(
-            asyncio.ensure_future(camera_client.poll_service_state())
-        )
+        # Drawing task(s)
+        self.async_tasks.append(asyncio.ensure_future(self.draw()))
 
         return await asyncio.gather(run_wrapper(), *self.async_tasks)
+
+    async def stream_canbus(self, client: CanbusClient) -> None:
+        """This task:
+
+        - listens to the canbus client's stream
+        - filters for AmigaTpdo1 messages
+        - extracts useful values from AmigaTpdo1 messages
+        """
+        response_stream: Optional[Generator[canbus_pb2.StreamCanbusReply]] = None
+
+        while True:
+            while client.state.value != canbus_pb2.CanbusServiceState.RUNNING:
+                await client.connect_to_service()
+
+            if response_stream is None:
+                response_stream = client.stub.streamCanbusMessages(
+                    canbus_pb2.StreamCanbusRequest()
+                )
+
+            response: canbus_pb2.StreamCanbusReply = await response_stream.read()
+            if response == grpc.aio.EOF:
+                # Checks for end of stream
+                break
+            if response and response.status == canbus_pb2.ReplyStatus.OK:
+                for proto in response.messages.messages:
+                    amiga_tpdo1: Optional[AmigaTpdo1] = parse_amiga_tpdo1_proto(proto)
+                    if amiga_tpdo1:
+                        self.amiga_tpdo1 = amiga_tpdo1
+
+            # Shorter sleep than typical 10ms since canbus is very high rate
+            await asyncio.sleep(0.001)
 
     async def stream_camera(self, client: OakCameraClient) -> None:
         """This task listens to the camera client's stream and populates the tabbed panel with all 4 image streams
@@ -359,34 +382,15 @@ class VirtualPendantApp(App):
             yield canbus_pb2.SendCanbusMessageRequest(message=msg)
             await asyncio.sleep(period)
 
-    async def stream_canbus(self, client: CanbusClient) -> None:
-        """This task:
-
-        - listens to the canbus client's stream
-        - filters for AmigaTpdo1 messages
-        - extracts useful values from AmigaTpdo1 messages
-        """
-        response_stream: Optional[Generator[canbus_pb2.StreamCanbusReply]] = None
-
+    async def draw(self) -> None:
+        """Loop over drawing the VirtualJoystickWidget."""
+        while self.root is None:
+            await asyncio.sleep(0.01)
+        joystick: VirtualJoystickWidget = self.root.ids["joystick"]
         while True:
-            while client.state.value != canbus_pb2.CanbusServiceState.RUNNING:
-                await client.connect_to_service()
-
-            if response_stream is None:
-                response_stream = client.stub.streamCanbusMessages(
-                    canbus_pb2.StreamCanbusRequest()
-                )
-
-            response: canbus_pb2.StreamCanbusReply = await response_stream.read()
-            if response == grpc.aio.EOF:
-                break
-            if response and response.status == canbus_pb2.ReplyStatus.OK:
-                for proto in response.messages.messages:
-                    amiga_tpdo1: Optional[AmigaTpdo1] = parse_amiga_tpdo1_proto(proto)
-                    if amiga_tpdo1:
-                        self.amiga_tpdo1 = amiga_tpdo1
-
-            await asyncio.sleep(0.001)
+            joystick.draw()
+            self.update_kivy_strings()
+            await asyncio.sleep(0.01)
 
 
 if __name__ == "__main__":
