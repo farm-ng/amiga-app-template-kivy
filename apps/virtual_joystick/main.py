@@ -42,7 +42,7 @@ from kivy.app import App  # noqa: E402
 from kivy.lang.builder import Builder  # noqa: E402
 from kivy.uix.widget import Widget  # noqa: E402
 from kivy.core.image import Image as CoreImage  # noqa: E402
-
+from kivy.core.window import Window
 
 kv = """
 <VirtualJoystickWidget@Widget>:
@@ -109,7 +109,7 @@ def relative_cord_in_widget(
 
 class Vec2:
     """
-    Simple class for keeping joystick coords in x & y terms.
+    Simple container for keeping joystick coords in x & y terms.
     Defaults to a centered joystick (0,0).
     Clips values to range [-1.0, 1.0], as with the Amiga pendant.
     """
@@ -125,54 +125,6 @@ class VirtualJoystickWidget(Widget):
 
         self.pose: Vec2 = Vec2()
         self.joystick_rad: int = 100
-
-    def on_touch_down(self, touch: MouseMotionEvent) -> bool:
-        if isinstance(touch, MouseMotionEvent) and int(
-            os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
-        ):
-            return True
-        for w in self.children[:]:
-            if w.dispatch("on_touch_down", touch):
-                return True
-
-        res: Optional[Tuple[float, float]] = relative_cord_in_widget(
-            widget=self, touch=touch
-        )
-        if res:
-            # Clip to unit circle
-            div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
-        return False
-
-    def on_touch_move(self, touch: MouseMotionEvent) -> bool:
-        if isinstance(touch, MouseMotionEvent) and int(
-            os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
-        ):
-            return True
-        for w in self.children[:]:
-            if w.dispatch("on_touch_move", touch):
-                return True
-
-        res: Optional[Tuple[float, float]] = relative_cord_in_widget(
-            widget=self, touch=touch
-        )
-        if res:
-            # Clip to unit circle
-            div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
-            self.pose = Vec2(x=res[0] / div, y=res[1] / div)
-        return False
-
-    def on_touch_up(self, touch: MouseMotionEvent) -> bool:
-        if isinstance(touch, MouseMotionEvent) and int(
-            os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
-        ):
-            return True
-        for w in self.children[:]:
-            if w.dispatch("on_touch_up", touch):
-                return True
-
-        self.pose = Vec2()
-        return False
 
     def draw(self) -> None:
         self.canvas.clear()
@@ -227,6 +179,63 @@ class VirtualPendantApp(App):
         self.async_tasks: List[asyncio.Task] = []
 
     def build(self):
+        def on_touch_down(window: Window, touch: MouseMotionEvent) -> bool:
+            if isinstance(touch, MouseMotionEvent) and int(
+                os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
+            ):
+                return True
+            for w in window.children[:]:
+                if w.dispatch("on_touch_down", touch):
+                    return True
+
+            joystick: VirtualJoystickWidget = self.root.ids["joystick"]
+            # joystick =
+            res: Optional[Tuple[float, float]] = relative_cord_in_widget(
+                widget=joystick, touch=touch
+            )
+            if res:
+                # Clip to unit circle
+                div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
+                joystick.pose = Vec2(x=res[0] / div, y=res[1] / div)
+            return False
+
+        def on_touch_move(window: Window, touch: MouseMotionEvent) -> bool:
+            if isinstance(touch, MouseMotionEvent) and int(
+                os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
+            ):
+                return True
+            for w in window.children[:]:
+                if w.dispatch("on_touch_move", touch):
+                    return True
+
+            joystick: VirtualJoystickWidget = self.root.ids["joystick"]
+
+            res: Optional[Tuple[float, float]] = relative_cord_in_widget(
+                widget=joystick, touch=touch
+            )
+            if res:
+                # Clip to unit circle
+                div: float = max(1.0, sqrt(res[0] ** 2 + res[1] ** 2))
+                joystick.pose = Vec2(x=res[0] / div, y=res[1] / div)
+            return False
+
+        def on_touch_up(window: Window, touch: MouseMotionEvent) -> bool:
+            if isinstance(touch, MouseMotionEvent) and int(
+                os.environ.get("DISABLE_KIVY_MOUSE_EVENTS", 0)
+            ):
+                return True
+            for w in window.children[:]:
+                if w.dispatch("on_touch_up", touch):
+                    return True
+            joystick: VirtualJoystickWidget = self.root.ids["joystick"]
+
+            joystick.pose = Vec2()
+            return False
+
+        Window.bind(on_touch_down=on_touch_down)
+        Window.bind(on_touch_move=on_touch_move)
+        Window.bind(on_touch_up=on_touch_up)
+
         return Builder.load_string(kv)
 
     def update_kivy_strings(self) -> None:
