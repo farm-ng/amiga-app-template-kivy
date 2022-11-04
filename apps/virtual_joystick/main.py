@@ -367,7 +367,7 @@ class VirtualPendantApp(App):
             await asyncio.sleep(0.25)
 
     async def pose_generator(self, period: float = 0.02):
-        """The pose generator yields an AmigaAmigaRpdo1 (auto control command) for the canbus client to send on the
+        """The pose generator yields an AmigaRpdo1 (auto control command) for the canbus client to send on the
         bus at the specified period (recommended 50hz) based on the onscreen joystick position."""
         while self.root is None:
             await asyncio.sleep(0.01)
