@@ -1,4 +1,5 @@
 {
-    "package_name": "Hello",
+    "package_name": "hello",
+    "project_slug": "changeme",
     "greeting_recipient": "Amiga User"
 }
