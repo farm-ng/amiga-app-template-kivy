@@ -4,7 +4,7 @@ A Cookiecutter template for creating a Farm-ng Amiga Brain app.
 
 This repository provides a complete example of an application cable of driving our Amiga via CAN.
 
-## TL;DR
+## TL;DR :: How to use this
 
 Install the Cookiecutter Pip package
 ```bash
