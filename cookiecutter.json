@@ -1,5 +1,8 @@
 {
-    "package_name": "hello",
-    "project_slug": "changeme",
-    "greeting_recipient": "Amiga User"
+    "full_name": "Amiga User",
+    "email": "amiga_user@farm-ng.com",
+    "github_username": "amiga@farm-ng",
+    "package_name": "Hello",
+    "project_slug": "World",
+    "use_ci": ["gh-actions", null]
 }
