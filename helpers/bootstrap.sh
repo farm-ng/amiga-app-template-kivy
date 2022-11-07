@@ -19,16 +19,16 @@ bootstrap() {
     fi
     PYTHON=${venv}/bin/python
 
-    if [[ -f ${application}/requirements.txt.md5sum ]]
+    if [[ -f ${application}/setup.cfg.md5sum ]]
     then
-        old_checksum=$(cat ${application}/requirements.txt.md5sum)
-        new_cheksum=$(md5sum ${application}/requirements.txt)
+        old_checksum=$(cat ${application}/setup.cfg.md5sum)
+        new_cheksum=$(md5sum ${application}/setup.cfg)
         if [ "$new_checksum" == "$old_checksum" ]
         then
             echo "Not updating venv"
         else
             rm ${venv}/.lock
-            echo "requirements.txt md5sum detected, will update venv"
+            echo "setup.cfg md5sum changed, will update venv"
         fi
     fi
 
@@ -39,9 +39,9 @@ bootstrap() {
         $PYTHON -m pip install --upgrade pip
         $PYTHON -m pip install wheel
         cd ${application}
-        $PYTHON -m pip install --ignore-installed --upgrade -r ${application}/requirements.txt
+        $PYTHON -m pip install -e .
         touch ${venv}/.lock
-        md5sum ${application}/requirements.txt > ${application}/requirements.txt.md5sum
+        md5sum ${application}/setup.cfg > ${application}/setup.cfg.md5sum
 
     else
         echo "${venv} already existed, launching application"

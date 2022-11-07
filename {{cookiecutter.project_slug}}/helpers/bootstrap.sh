@@ -40,7 +40,7 @@ bootstrap() {
         $PYTHON -m pip install wheel
         cd ${application}
         #$PYTHON -m pip install --ignore-installed --upgrade -r ${application}/requirements.txt
-        pip install -e .
+        $PYTHON -m pip install -e .
         touch ${venv}/.lock
         md5sum ${application}/setup.cfg > ${application}/setup.cfg.md5sum
 
