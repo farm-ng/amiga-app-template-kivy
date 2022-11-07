@@ -1,3 +1,3 @@
 #!/usr/bin/env python
 
-print("Hello, {{cookiecutter.greeting_recipient}}!")
+print("Hello, {{cookiecutter.full_name}} :)")
