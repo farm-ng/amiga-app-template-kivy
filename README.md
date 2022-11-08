@@ -18,7 +18,7 @@ Install the Cookiecutter Pip package
 Click on *Use this template* to create a new repository based on this repo
 
 Fill in the details, example below:
-* Owner: *<your Github username>*
+* Owner: *username*
 * Repository Name: hello-amiga (names should be between 4-17 characters)
 * Set to Public
 
@@ -71,14 +71,14 @@ Copy your SSH key to the Amiga
 
 ---
 ## Customizing an app
-==TODO==
+*TODO*
 
 ---
 ## Publish an app
 
 To publish an app to the Amiga, run the *sync.sh* script located in the app's folder.
 ```bash
-    apps/==<your app name>==/sync.sh
+    apps/*<your app name>*/sync.sh
 ```
 
 To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
