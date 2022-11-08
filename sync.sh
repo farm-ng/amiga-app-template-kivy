@@ -43,6 +43,7 @@ if [[ $state == "start" ]]; then
         -i "!.vscode" \
         -i "**/*venv*" \
         -i "**/*egg-info*" \
+        -i "**/{{cookiecutter.package_name}}*" \
         --sync-mode=one-way-safe \
         $DIR \
         amiga:/data/home/amiga/code/
