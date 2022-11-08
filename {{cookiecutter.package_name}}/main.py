@@ -31,7 +31,9 @@ RelativeLayout:
         background_normal: "assets/back_button.png"
         on_release: app.on_exit_btn()
         Image:
-            source: "assets/back_button_normal.png" if self.parent.state == "normal" else "assets/back_button_down.png"
+            source: "assets/back_button_normal.png" \
+            if self.parent.state == "normal" \
+            else "assets/back_button_down.png"
             pos: self.parent.pos
             size: self.parent.size
 """
@@ -104,7 +106,7 @@ class TemplateApp(App):
             for task in self.async_tasks:
                 task.cancel()
 
-        # Drawing task(s)
+        # Placeholder task
         self.async_tasks.append(asyncio.ensure_future(self.template_function()))
 
         return await asyncio.gather(run_wrapper(), *self.async_tasks)
@@ -120,6 +122,8 @@ class TemplateApp(App):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="template-app")
+
+    # Add additional command line arguments here
 
     args = parser.parse_args()
 
