@@ -12,6 +12,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 Help
 
+SYNC_DIR=$DIR
+shopt -s extglob
+SYNC_DIR=${SYNC_DIR%%+(/)}    # trim however many trailing slashes exist
+SYNC_DIR=${SYNC_DIR##*/}       # remove everything before the last / that still remains
+SYNC_DIR=${SYNC_DIR:-/}
+
 state=""
 
 while getopts s: flag
@@ -33,6 +39,8 @@ then
     rm -rf /tmp/mutagen
 fi
 
+ssh amiga 'mkdir -p /data/home/amiga/code/apps/${SYNC_DIR}'
+
 if [[ $state == "start" ]]; then
     mutagen sync create --name=amiga \
         -i "**/build*" \
@@ -44,9 +52,8 @@ if [[ $state == "start" ]]; then
         -i "**/*venv*" \
         -i "**/*egg-info*" \
         -i "**/{{cookiecutter.package_name}}*" \
-        --sync-mode=one-way-safe \
         $DIR \
-        amiga:/data/home/amiga/code/
+        amiga:/data/home/amiga/code/apps/${SYNC_DIR}
 elif [[ $state == "stop" ]]; then
     mutagen sync terminate amiga
 elif [[ $state == "status" ]]; then

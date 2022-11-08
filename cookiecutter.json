@@ -1,5 +1,5 @@
 {
     "full_name": "Amiga User",
     "app_name": "Hello World",
-    "package_name": "{{cookiecutter.app_name.lower().replace(' ', '_').replace('-', '_')}}"
+    "package_name": "{{cookiecutter.app_name.replace(' ', '_').replace('-', '_')}}"
 }
