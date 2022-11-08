@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./lib"
+    ],
+    "python.envFile": "${workspaceFolder}/.env"
+}
