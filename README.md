@@ -60,6 +60,8 @@ Configure your *.ssh/config*
         StrictHostKeyChecking no
 ```
 
+`<intranet ip address>` can be found on the bottom right of the Amiga Brain screen.
+
 Copy your SSH key to the Amiga
 * If you do not have a key created
     ```bash
@@ -82,3 +84,5 @@ To publish an app to the Amiga, run the *sync.sh* script located in the app's fo
 ```
 
 To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
+    
+Click the app and wait for it to install and run.
