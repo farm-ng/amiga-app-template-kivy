@@ -2,6 +2,12 @@
 
 This repository is designed to streamline the creation of a new application deployable to the Amiga brain.
 
+First clone the repository to your desired root directory:
+```bash
+# cd <ROOT_DIRECTORY>/
+git clone git@github.com:farm-ng/amiga-brain-example.git
+
+```
 Please note, to properly utilize this template, please install the Python cookiecutter package from PyPi.
 ```bash
     python3 -m pip install --user cookiecutter
