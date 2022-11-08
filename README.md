@@ -7,9 +7,11 @@ This repository is designed to streamline the creation of a new application depl
 
 ### Requirements
 
+> NOTE: This assumes you already have Python3 installed
+
 Please note, to properly utilize this template, please install the Python cookiecutter package from PyPi.
 
-Linux:
+Linux / WSL:
 ```bash
 python3 -m pip install --user cookiecutter
 ```
@@ -21,14 +23,14 @@ brew install cookiecutter
 
 ### Create a repository from this template
 
-Click on *Use this template* to create a new repository based on this repo
+Click on green *Use this template* button (top right) to create a new repository based on this repo
 
 Fill in the details, example below:
 * Owner: *username*
 * Repository Name: hello-amiga (names should be between 4-17 characters)
 * Set to Public
 
-Once completed, click *Create repository from template*
+Once completed, click *[Create repository from template]*
 
 When the repository creation process has completed, clone the repo to your local workspace
 
@@ -39,7 +41,12 @@ Your now ready to create your first Kivy app, please choose a name between 4 and
 ./create_app.sh
 ```
 
-Enter your full name, press enter and enter your chosen app name as well. Press enter again and once more to accept the formatted package name
+1. Enter your full name
+2. press enter
+3. enter your chosen app name as well.
+4. Press enter again
+5. Press enter once more to accept the formatted package name
+    - Or rename the package as you desire
 
 Your kivy application has been created under the *apps* directory
 ```bash
