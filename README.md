@@ -2,23 +2,25 @@
 
 This repository is designed to streamline the creation of a new application deployable to the Amiga brain.
 
+---
+## TL;DR :: How to use this
+
 First clone the repository to your desired root directory:
 ```bash
 # cd <ROOT_DIRECTORY>/
 git clone git@github.com:farm-ng/amiga-brain-example.git
-
 ```
+
 Please note, to properly utilize this template, please install the Python cookiecutter package from PyPi.
+
+Linux:
 ```bash
-    python3 -m pip install --user cookiecutter
+python3 -m pip install --user cookiecutter
 ```
 
----
-## TL;DR :: How to use this
-
-Install the Cookiecutter Pip package
+Mac:
 ```bash
-    python3 -m pip install --user cookiecutter
+brew install cookiecutter
 ```
 
 Click on *Use this template* to create a new repository based on this repo
@@ -34,19 +36,19 @@ When the repository creation process has completed, clone the repo to your local
 
 Your now ready to create your first Kivy app, please choose a name between 4 and 17 characters run the *create app.sh* script
 ```bash
-    ./create_app.sh
+./create_app.sh
 ```
 
 Enter your full name, press enter and enter your chosen app name as well. Press enter again and once more to accept the formatted package name
 
 Your kivy application has been created under the *apps* directory
 ```bash
-    ls apps/
+ls apps/
 ```
 
 Before any changes, lets see if we can run this app.
 ```bash
-    apps/<your app name>/entry.sh
+apps/<your app name>/entry.sh
 ```
 
 When running the above script, a virtual environment will be created under the *<application>* directory and any dependencies will be installed.
@@ -59,11 +61,11 @@ If all goes well, you'll see an empty kivy application on your screen.
 
 Configure your *.ssh/config*
 ```
-    Host amiga
-        HostName <intranet ip address>
-        Port 22
-        User amiga
-        StrictHostKeyChecking no
+Host amiga
+    HostName <intranet ip address>
+    Port 22
+    User amiga
+    StrictHostKeyChecking no
 ```
 
 `<intranet ip address>` can be found on the bottom right of the Amiga Brain screen.
@@ -71,10 +73,10 @@ Configure your *.ssh/config*
 Copy your SSH key to the Amiga
 * If you do not have a key created
     ```bash
-        ssh-keygen
+    ssh-keygen
     ```
 ```bash
-    ssh-copy-id amiga
+ssh-copy-id amiga
 ```
 
 ---
@@ -86,7 +88,7 @@ Copy your SSH key to the Amiga
 
 To publish an app to the Amiga, run the *sync.sh* script located in the app's folder.
 ```bash
-    apps/*<your app name>*/sync.sh -s start
+apps/*<your app name>*/sync.sh -s start
 ```
 
 To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
