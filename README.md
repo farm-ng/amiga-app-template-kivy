@@ -5,11 +5,7 @@ This repository is designed to streamline the creation of a new application depl
 ---
 ## TL;DR :: How to use this
 
-First clone the repository to your desired root directory:
-```bash
-# cd <ROOT_DIRECTORY>/
-git clone git@github.com:farm-ng/amiga-brain-example.git
-```
+### Requirements
 
 Please note, to properly utilize this template, please install the Python cookiecutter package from PyPi.
 
@@ -23,6 +19,8 @@ Mac:
 brew install cookiecutter
 ```
 
+### Create a repository from this template
+
 Click on *Use this template* to create a new repository based on this repo
 
 Fill in the details, example below:
@@ -33,6 +31,8 @@ Fill in the details, example below:
 Once completed, click *Create repository from template*
 
 When the repository creation process has completed, clone the repo to your local workspace
+
+### Create an app
 
 Your now ready to create your first Kivy app, please choose a name between 4 and 17 characters run the *create app.sh* script
 ```bash
@@ -45,8 +45,9 @@ Your kivy application has been created under the *apps* directory
 ```bash
 ls apps/
 ```
+### Test the app
 
-Before any changes, lets see if we can run this app.
+Before any changes, lets see if we can run this app locally on your system.
 ```bash
 apps/<your app name>/entry.sh
 ```
