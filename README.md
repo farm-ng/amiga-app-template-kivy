@@ -17,7 +17,7 @@ Install the Cookiecutter Pip package
 Click on *Use this template* to create a new repository based on this repo
 
 Fill in the details, example below:
-* Owner: <your Github username>
+* Owner: *<your Github username>*
 * Repository Name: hello-amiga (names should be between 4-17 characters)
 * Set to Public
 
