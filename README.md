@@ -78,7 +78,7 @@ Copy your SSH key to the Amiga
 
 To publish an app to the Amiga, run the *sync.sh* script located in the app's folder.
 ```bash
-    apps/*<your app name>*/sync.sh
+    apps/*<your app name>*/sync.sh -s start
 ```
 
 To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
