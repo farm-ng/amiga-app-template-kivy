@@ -45,7 +45,7 @@ Your kivy application has been created under the *apps* directory
 ```bash
 ls apps/
 ```
-### Test the app
+#### [Optional] Test the app locally
 
 Before any changes, lets see if we can run this app locally on your system.
 ```bash
