@@ -7,6 +7,7 @@ Please note, to properly utilize this template, please install the Python cookie
     python3 -m pip install --user cookiecutter
 ```
 
+---
 ## TL;DR :: How to use this
 
 Install the Cookiecutter Pip package
@@ -37,9 +38,7 @@ Your kivy application has been created under the *apps* directory
     ls apps/
 ```
 
----
 Before any changes, lets see if we can run this app.
-
 ```bash
     apps/<your app name>/entry.sh
 ```
@@ -50,8 +49,7 @@ If all goes well, you'll see an empty kivy application on your screen.
 
 
 ---
-
-## Configuration
+## SSH Configuration
 
 Configure your *.ssh/config*
 ```
@@ -61,3 +59,26 @@ Configure your *.ssh/config*
         User amiga
         StrictHostKeyChecking no
 ```
+
+Copy your SSH key to the Amiga
+* If you do not have a key created
+    ```bash
+        ssh-keygen
+    ```
+```bash
+    ssh-copy-id amiga
+```
+
+---
+## Customizing an app
+==TODO==
+
+---
+## Publish an app
+
+To publish an app to the Amiga, run the *sync.sh* script located in the app's folder.
+```bash
+    apps/==<your app name>==/sync.sh
+```
+
+To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
