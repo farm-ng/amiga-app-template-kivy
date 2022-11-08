@@ -37,7 +37,7 @@ bootstrap() {
         python3 -m venv ${venv}
         # Upgrade Pip
         $PYTHON -m pip install --upgrade pip
-        $PYTHON -m pip install wheel
+        $PYTHON -m pip install setuptools wheel
         cd ${application}
         $PYTHON -m pip install -e .
         touch ${venv}/.lock
