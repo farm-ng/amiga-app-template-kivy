@@ -27,7 +27,7 @@ bootstrap() {
         then
             echo "Not updating venv"
         else
-            rm ${venv}/.lock
+            rm ${venv}/.lock || true
             echo "setup.cfg md5sum changed, will update venv"
         fi
     fi
