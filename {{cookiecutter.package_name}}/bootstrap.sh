@@ -22,7 +22,7 @@ bootstrap() {
     if [[ -f ${application}/setup.cfg.md5sum ]]
     then
         old_checksum=$(cat ${application}/setup.cfg.md5sum)
-        new_cheksum=$(md5sum ${application}/setup.cfg)
+        new_checksum=$(md5sum ${application}/setup.cfg)
         if [ "$new_checksum" == "$old_checksum" ]
         then
             echo "Not updating venv"
