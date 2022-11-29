@@ -1,4 +1,4 @@
-# amiga-brain-example
+# amiga-app-template
 
 This repository is designed to streamline the creation of a new application deployable to the Amiga brain.
 
@@ -100,5 +100,5 @@ apps/*<your app name>*/sync.sh -s start
 ```
 
 To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
-    
+
 Click the app and wait for it to install and run.
