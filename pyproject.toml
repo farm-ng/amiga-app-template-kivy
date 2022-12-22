@@ -1,25 +1,6 @@
-# As per https://github.com/pypa/setuptools/blob/main/docs/userguide/quickstart.rst
 [build-system]
 requires = [
-    "certifi==2022.9.24",
-    "charset-normalizer==2.1.1",
-    "docutils==0.19",
-    "farm-ng-amiga",
-    "grpcio==1.50.0",
-    "kivy",
-    "protobuf",
-    "pygments==2.13.0",
-    "requests==2.28.1",
     "setuptools",
-    "urllib3==1.26.12",
     "wheel",
 ]
-
-
 build-backend = "setuptools.build_meta"
-
-
-[options.extras_require]
-dev = [
-    "black",
-]
