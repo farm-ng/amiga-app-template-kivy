@@ -22,7 +22,7 @@ from kivy.app import App  # noqa: E402
 from kivy.lang.builder import Builder  # noqa: E402
 
 # import internal libs
-from amiga_pkg import math
+from amiga_package import ops
 
 
 class TemplateApp(App):
@@ -63,7 +63,7 @@ class TemplateApp(App):
             await asyncio.sleep(1.0)
 
             # increment the counter using internal libs and update the gui
-            self.counter = math.add(self.counter, 1)
+            self.counter = ops.add(self.counter, 1)
             self.root.ids.counter_label.text = (
                 f"{'Tic' if self.counter % 2 == 0 else 'Tac'}: {self.counter}"
             )
