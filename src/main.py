@@ -4,6 +4,10 @@ import asyncio
 import os
 from typing import List
 
+from amiga_package import ops
+
+# import internal libs
+
 # Must come before kivy imports
 os.environ["KIVY_NO_ARGS"] = "1"
 
@@ -21,12 +25,10 @@ Config.set("kivy", "keyboard_mode", "systemanddock")
 from kivy.app import App  # noqa: E402
 from kivy.lang.builder import Builder  # noqa: E402
 
-# import internal libs
-from amiga_package import ops
-
 
 class TemplateApp(App):
     """Base class for the main Kivy app."""
+
     def __init__(self) -> None:
         super().__init__()
 

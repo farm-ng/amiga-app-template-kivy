@@ -1,5 +1,6 @@
 """Template module with math functions."""
 
+
 def add(a: int, b: int) -> int:
     """Template function to add to integer values."""
     assert isinstance(a, int), f"not an integer. Got: {type(a)}"

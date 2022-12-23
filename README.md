@@ -42,7 +42,7 @@ repository-name/  # Root level of the project.
 |   └── project_name/
 |       ├── ops.py  # e.g a operators submodule
 |       └── project_name_subpackage/
-|           └── utils.py  # e.g a utilites submodule
+|           └── utils.py  # e.g a utilities submodule
 ├── src/ # Contains all code needed to run the main gui application.
 |   ├── assets/  # Contains files needed to run the application
 |   |   └── app_logo.png  # static images or images for buttons.
