@@ -7,25 +7,8 @@ For the most up-to-date documentation on using this template repository, please 
 [amiga.farm-ng.com - **Developing Custom Applications**](https://amiga.farm-ng.com/docs/brain/brain-apps)
 
 ---
-## TL;DR :: How to use this
 
-### Requirements
-
-> NOTE: This assumes you already have Python3 installed
-
-Please note, to properly utilize this template, please install the Python cookiecutter package from PyPi.
-
-Linux / WSL:
-```bash
-python3 -m pip install --user cookiecutter
-```
-
-Mac:
-```bash
-brew install cookiecutter
-```
-
-### Create a repository from this template
+## Create a repository from this template
 
 Click on green *Use this template* button (top right) to create a new repository based on this repo
 
@@ -36,36 +19,96 @@ Fill in the details, example below:
 
 Once completed, click *[Create repository from template]*
 
-When the repository creation process has completed, clone the repo to your local workspace
+When the repository creation process has completed, you have two options:
 
-### Create an app
+1. Work in your local workspace.
+2. Work in a remote Remote-SSH session using in vs-code.
 
-Your now ready to create your first Kivy app, please choose a name between 4 and 17 characters run the *create app.sh* script
+In both cases you will have to clone the created repository from above
+
 ```bash
-./create_app.sh
+git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
 ```
 
-1. Enter your full name
-2. press enter
-3. enter your chosen app name as well.
-4. Press enter again
-5. Press enter once more to accept the formatted package name
-    - Or rename the package as you desire
+## Project structure
 
-Your kivy application has been created under the *apps* directory
+In vs-code, you can see the project structure on the left side in the `EXPLORER`:
+
+Below are listed the most important components.
+
 ```bash
-ls apps/
+repository-name/  # Root level of the project.
+├── libs/ # Contains private libraries.
+|   └── project_name/
+|       ├── ops.py  # e.g a operators submodule
+|       └── project_name_subpackage/
+|           └── utils.py  # e.g a utilities submodule
+├── src/ # Contains all code needed to run the main gui application.
+|   ├── assets/  # Contains files needed to run the application
+|   |   └── app_logo.png  # static images or images for buttons.
+|   ├── res/  # Contains the layout files and UI strings.
+|   |   └── main.kv  # main ui layout in Kivy languague
+|   └── main.py  # Is the main entry point for the gui application.
+├── test/  # Contains code for test of the private libs.
+|   └── test_dummy.py  # sets of unit test.
+├── entry.sh
+|    # The script to setup the project, create a virtual env. and install dependencies.
+└── setup.cfg
+    # The file containing the metadata of the package, including the name, versioning, etc. Learn more here: https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
+
 ```
-#### [Optional] Test the app locally
+
+## How to setup the project
 
 Before any changes, lets see if we can run this app locally on your system.
+
 ```bash
-apps/<your app name>/entry.sh
+cd YOUR_REPOSITORY/
+./entry.sh  # install and run
 ```
 
-When running the above script, a virtual environment will be created under the *<application>* directory and any dependencies will be installed.
+When running the above script, a virtual environment `venv` will be created and any dependencies will be installed.
 
-If all goes well, you'll see an empty kivy application on your screen.
+If all goes well, you'll see an dummy kivy application on your screen.
+
+## Customizing an app
+
+In order to customize an app we leverage the `setup.cfg` that contains all the metadata and package configuration. More: https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
+
+The most important first steps are to modify the metadata of the project and dependencies:
+
+1. Inside the `setup.cfg` file, adjust the fields under the tag `[metadata]`
+    * For basic users, the package name  goes in the `name` field, and must match with the directory name right under the `libs/` directory.
+    * For advanced users, you can modify as much is complaint with Python `setuptools`.
+2. Adjust the package dependencies
+    * Include whatever extra dependency you need in the `install_requires` field.
+    * Our only requirements are:
+        * `wheel`: for packaging the app.
+        * `kivy`: to generate the graphical user interface (GUI).
+        * `farm-ng-amiga`: the Farm-ng Amiga public SDK.
+
+In case you face issues, connect with us and the community:
+* https://discourse.farm-ng.com/c/support/5
+
+
+
+## Development and Debug an app
+
+The workflow for development is pretty much the same as any standard gui application.
+
+1. Make changes in the code.
+2. Run the code with the play button in vs-code.
+    - [Optionally] Add a breakpoint to any line and use the Debug Console to interact.
+3. Go to step 1)
+
+
+## [Optional] Test your application
+
+In order to validate your functionality, we suggest to add test cases for the internal `libs/[package_name]`
+located under `test/test_[test_name].py`.
+
+To launch the tests: `pytest test/`
+To run specific tests: `pytest test/test_dummy.py::TestDummy::test_add`
 
 
 ---
@@ -92,17 +135,3 @@ ssh-copy-id amiga
 ```
 
 ---
-## Customizing an app
-*TODO*
-
----
-## Publish an app
-
-To publish an app to the Amiga, run the *sync.sh* script located in the app's folder.
-```bash
-apps/*<your app name>*/sync.sh -s start
-```
-
-To see your app on the Amiga screen, cause a refresh by tapping the settings screen then pressing the home button on the top right.
-
-Click the app and wait for it to install and run.
