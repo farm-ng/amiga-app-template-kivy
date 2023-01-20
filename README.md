@@ -14,7 +14,7 @@ Click on green *Use this template* button (top right) to create a new repository
 
 Fill in the details, example below:
 * Owner: *username*
-* Repository Name: hello-amiga (names should be between 4-17 characters)
+* Repository Name: hello-amiga (names should be between 4-17 characters with dashes (`-`) separating words (no spaces!))
 * Set to Public
 
 Once completed, click *[Create repository from template]*
@@ -78,7 +78,19 @@ In order to customize an app we leverage the `setup.cfg` that contains all the m
 The most important first steps are to modify the metadata of the project and dependencies:
 
 1. Inside the `setup.cfg` file, adjust the fields under the tag `[metadata]`
-    * For basic users, the package name  goes in the `name` field, and must match with the directory name right under the `libs/` directory.
+    * For basic users, the package name (`project_name` in the project structure above) goes in the `name` field, and must match with the directory name right under the `libs/` directory.
+      * I.e., change both the `name` field and the directory name under `libs/` to your new app name.
+      * VScode should prompt you to change the import names in `test_dummy.py` once you change the directory name.
+      * If not, manually change:
+        ```
+        from amiga_package import __version__
+        from amiga_package import ops
+        ```
+      * To:
+        ```
+        from <project_name> import __version__
+        from <project_name> import ops
+        ```
     * For advanced users, you can modify as much is complaint with Python `setuptools`.
 2. Adjust the package dependencies
     * Include whatever extra dependency you need in the `install_requires` field.
