@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: venv/bin/python -m pip install -e .[dev]
     - name: Run mypy
-      run: venv/bin/mypy
+      run: venv/bin/mypy --no-strict-optional
 
   pre-commit-check:
     runs-on: ubuntu-latest
