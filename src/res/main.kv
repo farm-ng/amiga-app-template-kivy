@@ -10,7 +10,39 @@ RelativeLayout:
             source: "assets/back_button_normal.png" if self.parent.state == "normal" else "assets/back_button_down.png"
             pos: self.parent.pos
             size: self.parent.size
-    Label:
-        id: counter_label
-        text: "Tic: 0"
-        font_size: 40
+    
+    BoxLayout:
+        size_hint_y: .1
+        size_hint_x: .5
+        pos_hint: {'top': .85}
+        padding: 5, 5
+        spacing: '5dp'
+        ToggleButton:
+            group: 'toggle_group'
+            id: guide_line
+            text: 'Guidance Line'
+            font_size: '25'
+            allow_no_selection: False
+            on_state: if self.state == 'down': app.on_toggle_button_press(self,"/data/")
+
+        ToggleButton:
+            group: 'toggle_group'
+            id: path
+            text: 'Path'
+            font_size: '25'
+            allow_no_selection: False
+            on_state: if self.state == 'down': app.on_toggle_button_press(self,"/data/farm_ng/paths")
+
+        ToggleButton:
+            group: 'toggle_group'
+            id: field_bound
+            text: 'Field Boundry'
+            font_size: '25'
+            allow_no_selection: False
+            on_state: if self.state == 'down': app.on_toggle_button_press(self,"/data/")
+
+    RecycleView:
+        id: recycleview
+        viewclass: 'Label'
+
+
