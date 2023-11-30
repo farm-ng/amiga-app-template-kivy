@@ -1,0 +1,12 @@
+{
+    "services": {
+        "camera-app": {
+            "type": "app_third_party",
+            "python": false,
+            "args": [
+                "entry.sh"
+            ],
+            "display_name": "Kivy Camera App"
+        }
+    }
+}
