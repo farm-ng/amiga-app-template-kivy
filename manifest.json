@@ -1,12 +1,11 @@
 {
-    "services": {
-        "camera-app": {
-            "type": "app_third_party",
-            "python": false,
-            "args": [
-                "entry.sh"
-            ],
-            "display_name": "Kivy Camera App"
-        }
+  "services": {
+    "example-app-kivy": {
+      "name": "example-app-kivy",
+      "type": "app",
+      "exec_cmd": "/mnt/managed_home/farm-ng-user-edgar/amiga-app-template-kivy/entry.sh",
+      "display_name": "Kivy Example App",
+      "autostart": false
     }
+  }
 }
